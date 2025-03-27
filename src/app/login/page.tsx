@@ -47,10 +47,10 @@ export default function Login1() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="font-semibold text-2xl text-black">
-                    Welcome,
+                    Welcome
                   </FormLabel>
                   <FormLabel className="font-normal text-gray-400">
-                    Connect email and set a password
+                    Put your details to log in
                   </FormLabel>
                   <FormLabel className="mt-4 font-medium text-sm text-black">
                     Email

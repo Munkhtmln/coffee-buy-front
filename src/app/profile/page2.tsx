@@ -1,96 +1,43 @@
 "use client";
-import { Input } from "@/components/ui/input";
-import Header from "../components/Header";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 
-const formSchema = z.object({
-  username: z.string().min(2, {
-    message: "The username is already taken",
-  }),
-});
-export default function profile2({ nextPage }: { nextPage: () => void }) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      username: "",
-    },
-  });
+import { useState } from "react";
+import { Coffee } from "lucide-react";
+import PaymentForm from "../components/payment-form";
+import LoadingScreen from "../components/loading-screen";
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    nextPage();
-  }
+export default function Home() {
+  const [step, setStep] = useState(1);
+  const [showErrors, setShowErrors] = useState(false);
+
+  const handleContinue = () => {
+    if (step === 1) {
+      setShowErrors(true);
+      // In a real app, we would validate the form here
+      // For demo purposes, we'll show errors first, then proceed to loading
+      setTimeout(() => {
+        setStep(2);
+      }, 1500);
+    }
+  };
+
   return (
-    <div>
-      <div>
-        <Header />
-      </div>
-      <div className="w-[510px] h-[631px] m-auto mt-60">
-        <h1 className="font-bold text-2xl">How would you like to be paid?</h1>
-        <p className="text-gray-400">enter location and payment details</p>
-        <div>
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-8 text-red-500"
-            >
-              <FormField
-                control={form.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="mt-4 font-medium text-sm text-black">
-                      Name
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="enter your name here"
-                        className="text-black"
-                      />
-                    </FormControl>
-                    <FormLabel className="mt-4 font-medium text-sm text-black">
-                      About
-                    </FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Write about yourself here"
-                        className="text-black pb-20 pt-4"
-                      />
-                    </FormControl>
-                    <FormLabel className="mt-4 font-medium text-sm text-black">
-                      Social media URL
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://" className="text-black" />
-                    </FormControl>
-                    <FormDescription></FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </form>
-          </Form>
-          <Button
-            type="submit"
-            className="bg-gray-300 w-[260px] h-[40px] text-black ml-62 mt-5"
-          >
-            continue
-          </Button>
+    <div className="min-h-screen bg-white">
+      <header className="border-b border-gray-100 py-4 px-6 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <Coffee className="h-5 w-5" />
+          <h1 className="font-bold text-lg">Buy Me Coffee</h1>
         </div>
-      </div>
+        <button className="text-sm text-gray-600 hover:text-gray-900">
+          Log out
+        </button>
+      </header>
+
+      <main className="max-w-2xl mx-auto py-12 px-4">
+        {step === 1 && (
+          <PaymentForm onContinue={handleContinue} showErrors={showErrors} />
+        )}
+        {step === 2 && <LoadingScreen />}
+      </main>
     </div>
   );
 }

@@ -60,6 +60,7 @@ const Signup01 = ({ nextPage }: { nextPage: () => void }) => {
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
     nextPage();
+    return;
   }
   return (
     <div>
@@ -94,13 +95,13 @@ const Signup01 = ({ nextPage }: { nextPage: () => void }) => {
               </FormItem>
             )}
           />
-        </form>{" "}
-        <Button
-          type="submit"
-          className="bg-gray-300 w-[359px] h-[40px] text-black"
-        >
-          continue
-        </Button>
+          <Button
+            type="submit"
+            className="bg-gray-300 w-[359px] h-[40px] text-black"
+          >
+            continue
+          </Button>
+        </form>
       </Form>
     </div>
   );
