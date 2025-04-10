@@ -47,7 +47,7 @@ export default function Login1() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="font-semibold text-2xl text-black">
-                    Welcome
+                    Welcome back
                   </FormLabel>
                   <FormLabel className="font-normal text-gray-400">
                     Put your details to log in
@@ -85,7 +85,7 @@ export default function Login1() {
             </Link>
           </form>
         </Form>
-        <Link href={"/signup01"}>
+        <Link href={"/"}>
           <Button className="bg-gray-300 absolute right-20 top-10 cursor-pointer text-black">
             Signup
           </Button>
