@@ -1,150 +1,78 @@
-import { runQuery } from "@/utils/queryService";
 import { NextResponse } from "next/server";
+import { runQuery } from "../../../../util/qeuryService";
+import { Profile } from "@/app/_lib/type";
 
-export async function POST(req: Request): Promise<NextResponse> {
+export async function GET(): Promise<NextResponse> {
+  try {
+    const getProfile = `SELECT name,about FROM "Profile"`;
+    const profile = await runQuery(getProfile);
+
+    return new NextResponse(JSON.stringify({ Profiles: profile }));
+  } catch (err) {
+    console.error("Failed to run query:", err);
+    return new NextResponse(
+      JSON.stringify({ error: true, message: "Failed to run query" }),
+      {
+        status: 500,
+      }
+    );
+  }
+}
+
+export async function POST(req: Request): Promise<NextResponse<Profile>> {
   try {
     const {
       name,
       about,
-      avatarImage,
       socialMediaURL,
+      avatarImage,
+      userId,
       backgroundImage,
       successMessage,
-      userId,
     } = await req.json();
 
-    if (successMessage) {
-      const updateUserSuccessMessageQuery = `
-      UPDATE "Profile" SET "successMessage" = $1
-      WHERE "userId" = $2
-      RETURNING *`;
-
-      const userProfile = await runQuery(updateUserSuccessMessageQuery, [
-        successMessage,
-        userId,
-      ]);
-
+    if (userId === null || userId === undefined) {
       return new NextResponse(
-        JSON.stringify({
-          message: "Хэрэглэгчийн нэмэлт мэдээллийг амжилттай шинэчиллээ!",
-          profile: userProfile,
-        }),
-        { status: 201, headers: { "Content-Type": "application/json" } }
+        JSON.stringify({ error: true, message: "User ID is required" }),
+        {
+          status: 400,
+        }
       );
     }
+    const createProfile = `INSERT INTO "Profile" (name, about, "socialMediaURL" ,"avatarImage" , "backgroundImage" , "successMessage" ) VALUES ($1, $2, $3,$4 , $5, $6 ) RETURNING * `;
 
-    if (backgroundImage) {
-      const updateUserSuccessMessageQuery = `
-      UPDATE "Profile" SET "backgroundImage" = $1
-      WHERE "userId" = $2
-      RETURNING *`;
-
-      const userProfile = await runQuery(updateUserSuccessMessageQuery, [
-        backgroundImage,
-        userId,
-      ]);
-
-      return new NextResponse(
-        JSON.stringify({
-          message: "Хэрэглэгчийн нэмэлт мэдээллийг амжилттай шинэчиллээ!",
-          profile: userProfile,
-        }),
-        { status: 201, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    const updateUserProfileQuery = `
-      INSERT INTO "Profile" ("name", "about", "avatarImage", "socialMediaURL", "userId")
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *`;
-
-    const userProfile = await runQuery(updateUserProfileQuery, [
-      name,
-      about,
-      avatarImage,
-      socialMediaURL,
-      backgroundImage,
-      userId,
-    ]);
-
-    console.log(userProfile);
-
-    return new NextResponse(
-      JSON.stringify({
-        message: "Хэрэглэгчийн нэмэлт мэдээллийг амжилттай нэмлээ!",
-        profile: userProfile,
-      }),
-      { status: 201, headers: { "Content-Type": "application/json" } }
-    );
-  } catch (err) {
-    console.error("Алдаа гарлаа:", err);
-    return new NextResponse(
-      JSON.stringify({ error: "Серверийн алдаа гарлаа!" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
-  }
-}
-
-export async function PUT(req: Request): Promise<NextResponse> {
-  try {
-    const { name, about, socialMediaURL, avatarImage, userId } =
-      await req.json();
-
-    const updateUserProfileQuery = `
-      UPDATE "Profile" SET "name" = $1, "about" = $2, "socialMediaURL" = $3, "avatarImage" = $4
-      WHERE "userId" = $5
-      RETURNING *`;
-
-    const updatedUserProfile = await runQuery(updateUserProfileQuery, [
+    const profile: Profile[] = await runQuery(createProfile, [
       name,
       about,
       socialMediaURL,
       avatarImage,
-      userId,
+      backgroundImage || null,
+      successMessage || null,
     ]);
 
-    return new NextResponse(
-      JSON.stringify({
-        message: "Хэрэглэгчийн нэмэлт мэдээллийг амжилттай нэмлээ!",
-        profile: updatedUserProfile,
-      }),
-      { status: 201, headers: { "Content-Type": "application/json" } }
-    );
-  } catch (err) {
-    console.error("Алдаа гарлаа:", err);
-    return new NextResponse(
-      JSON.stringify({ error: "Серверийн алдаа гарлаа!" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
-  }
-}
+    const createdProfile = profile[0];
 
-export async function PATCH(req: Request): Promise<NextResponse> {
-  try {
-    const { backgroundImage, userId } = await req.json();
+    const UPDATE_PROFILE = `UPDATE "User" SET "profileId" = $1 WHERE id = $2`;
 
-    const updateUserProfileQuery = `
-      UPDATE "Profile" SET "backgroundImage" = $1
-      WHERE "userId" = $2
-      RETURNING *`;
-
-    const updatedUserProfile = await runQuery(updateUserProfileQuery, [
-      backgroundImage,
+    const updateProfile = await runQuery(UPDATE_PROFILE, [
+      createdProfile?.id,
       userId,
     ]);
-
     return new NextResponse(
       JSON.stringify({
-        message: "Хэрэглэгчийн ханын зургийг амжилттай нэмлээ!",
-        profile: updatedUserProfile,
-      }),
-      { status: 201, headers: { "Content-Type": "application/json" } }
+        profile: profile[0],
+        updateProfile: updateProfile[0],
+        userId: userId,
+        message: "Profile created successfully",
+      })
     );
   } catch (err) {
-    console.error("Алдаа гарлаа:", err);
+    console.error("Failed to run query:", err);
     return new NextResponse(
-      JSON.stringify({ error: "Серверийн алдаа гарлаа!" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({ error: true, message: "Failed to create profile" }),
+      {
+        status: 500,
+      }
     );
   }
 }
